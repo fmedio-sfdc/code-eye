@@ -120,9 +120,13 @@ public class StatsListener extends JavaBaseListener {
             assert input.containsKey("filename");
 
             String fileName = combinePath(args.fileDir, input.get("filename"));
-            Map<String, String> dimensions = analyzeFile(CharStreams.fromFileName(fileName));
-            input.putAll(dimensions);
-            System.out.println(gson.toJson(input).toString());
+            if (new File(fileName).exists()) {
+                Map<String, String> dimensions = analyzeFile(CharStreams.fromFileName(fileName));
+                input.putAll(dimensions);
+                System.out.println(gson.toJson(input).toString());
+            } else {
+                System.err.println("Skipping file-not-found: " + fileName);
+            }
         }
     }
 
@@ -205,6 +209,12 @@ public class StatsListener extends JavaBaseListener {
     }
 
     private static String combinePath(String fileDir, String fileName) {
+        if (fileName.startsWith("//")) {
+            fileName = fileName.substring(2);
+        }
+        if (fileName.indexOf("#") > 0) {
+            fileName = fileName.replace("#","");
+        }
         File fileInDirectory;
         if (fileDir != null) {
             File baseDirectory = new File(fileDir);
