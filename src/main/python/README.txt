@@ -11,7 +11,7 @@ We use JSON dictionaries to store features for each java file that we process. E
     1. input: parameters for “p4 changes” cmd, like a range of dates for CL retrieval
     2. output: p4 describe output for each CL
     3. example:
-        p4 changes -s submitted //app/main/core/...@2016/11/18,2017/03/30 | awk '{print $2}' | xargs p4 describe -s > changes.out
+            p4 changes -s submitted //app/main/core/...@2016/11/18,2017/03/30 | awk '{print $2}' | xargs p4 describe -s > changes.out
 2. Gather filenames and other features from the p4 describe command
     1. input: file containing changelist info
     2. output: json dict containing filename, gusid, and other p4 info
@@ -22,7 +22,7 @@ We use JSON dictionaries to store features for each java file that we process. E
     2. output: gus record type and label= 0 or 1 (based on gus type) added to dicts
     3. create environment variable GUS_SESSION_ID with a valid gus session id
     3. example:
-         python gus.py 2>gus.err > gus.out
+         cat retrieve.out | python gus.py 2>gus.err > gus.out
 4. Find java source. When label=1 find previous java version
     1. input: streamed
     2. outupt: substitute pre-bug java filename+version when label=1, skip files where label=0 if file already exists with label=1
