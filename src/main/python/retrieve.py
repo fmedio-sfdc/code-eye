@@ -21,6 +21,9 @@ def get_files_from_changelist(fname):
         cl = changelists.peel(f)
         if (cl == ''):
             break
+        # always skip autointegrations. They will be processed in the original p4 checkin
+        if re.search('autointeg@', line):
+            continue
         files = changelists.parseFiles(cl)
         allfiles.append(files)
 
