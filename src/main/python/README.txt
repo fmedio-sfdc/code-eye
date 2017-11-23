@@ -11,7 +11,8 @@ We use JSON dictionaries to store features for each java file that we process. E
     1. input: parameters for “p4 changes” cmd, like a range of dates for CL retrieval
     2. output: p4 describe output for each CL
     3. example:
-            p4 changes -s submitted //app/main/core/...@2016/11/18,2017/03/30 | awk '{print $2}' | xargs p4 describe -s > changes.out
+        p4 changes -s submitted //app/main/core/...@2016/11/18,2017/03/30 | awk '{print $2}' | xargs p4 describe -s > changes-208-main.out
+        p4 changes -s submitted //app/208/... | awk '{print $2}' | xargs p4 describe -s > changes-208-patch.out
 2. Gather filenames and other features from the p4 describe command
     1. input: file containing changelist info
     2. output: json dict containing filename, gusid, and other p4 info
