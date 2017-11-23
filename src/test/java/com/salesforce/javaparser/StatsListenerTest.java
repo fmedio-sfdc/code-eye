@@ -65,7 +65,7 @@ public class StatsListenerTest {
 
     @Test
     public void testTypeTokens() throws Exception {
-        parse("class Foo<T> { static { StaticBlockVariable sbv; } GenericField<T> field; Foo(ConstructorParameter cp, T tee) {} m(MethodParameter mp, T tee) {MethodVariable mv; T genericMethodVariable;}}");
+        parse("class Foo<T> { static { Panda p; StaticBlockVariable sbv; } GenericField<T> field; Foo(ConstructorParameter cp, T tee) {} m(MethodParameter mp, T tee) {Panda p; MethodVariable mv; T genericMethodVariable;}}");
         Map<String, String> stats = listener.getStats();
         Lists.newArrayList(
                 "lexer.types.uncategorized.GenericField<T>",
@@ -80,13 +80,22 @@ public class StatsListenerTest {
                 "lexer.types.local_variable.MethodVariable",
                 "lexer.types.uncategorized.StaticBlockVariable",
                 "lexer.types.local_variable.StaticBlockVariable",
-                "lexer.types.local_variable.T",
-                "lexer.types.formal_parameter.T",
-                "lexer.types.uncategorized.T"
+                "lexer.types.local_variable.T"
         )
                 .forEach(s -> {
                     assertEquals("No value for " + s, "1.0", stats.get(s));
                 });
+
+        Lists.newArrayList(
+                "lexer.types.uncategorized.Panda",
+                "lexer.types.local_variable.Panda",
+                "lexer.types.formal_parameter.T"
+        )
+                .forEach(s -> {
+                    assertEquals("No value for " + s, "2.0", stats.get(s));
+                });
+
+        assertEquals("3.0", stats.get("lexer.types.uncategorized.T"));
     }
 
     @Test
