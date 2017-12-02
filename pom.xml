@@ -35,6 +35,16 @@
           <artifactId>commons-lang3</artifactId>
           <version>3.6</version>
       </dependency>
+      <dependency>
+          <groupId>org.apache.lucene</groupId>
+          <artifactId>lucene-core</artifactId>
+          <version>7.1.0</version>
+      </dependency>
+      <dependency>
+          <groupId>com.twitter.common</groupId>
+          <artifactId>io</artifactId>
+          <version>0.0.69</version>
+      </dependency>
   </dependencies>
     <build>
         <plugins>

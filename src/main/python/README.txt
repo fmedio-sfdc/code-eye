@@ -33,5 +33,9 @@ We use JSON dictionaries to store features for each java file that we process. E
     1. input: streamed
     2. output: add metrics from java parsing
     3. example:
-        java -jar /path/to/code-stat/target/java-source-analyzer-1.0-SNAPSHOT.jar 2>parser.err > parser.out
+        cat javasource.out | java -jar /path/to/code-stat/target/java-source-analyzer-1.0-SNAPSHOT.jar 2>parser.err > parser.out
+6. Rescore java lexer tokens, convert term frequencies to TF-IDF scores
+    1. input: output of 5
+    2. output: same format as input, with tf-idf scores instead of freqs
+    3. example: java -cp ../code/target/java-source-analyzer-1.0-SNAPSHOT.jar com.salesforce.javaparser.RescoreAll parser.out rescored.out
 

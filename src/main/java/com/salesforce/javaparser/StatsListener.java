@@ -180,8 +180,8 @@ public class StatsListener extends JavaBaseListener {
         if (ctx.fieldDeclaration() != null) {
             types(ctx.fieldDeclaration().typeType())
                     .forEach(s -> {
-                        this.termFreqs.compute("lexer.types.uncategorized." + s, (k, v) -> v == null ? 01 : v + 1);
-                        this.termFreqs.compute("lexer.types.field." + s, (k, v) -> v == null ? 01 : v + 1);
+                        this.termFreqs.compute("lexer.types.uncategorized." + s, (k, v) -> v == null? 01 : v + 1);
+                        this.termFreqs.compute("lexer.types.field." + s, (k, v) -> v == null? 01 : v + 1);
                     });
         }
     }
@@ -203,8 +203,8 @@ public class StatsListener extends JavaBaseListener {
     public void enterFormalParameterList(JavaParser.FormalParameterListContext ctx) {
         ctx.formalParameter().forEach(fp -> {
             types(fp.typeType()).forEach(s -> {
-                this.termFreqs.compute("lexer.types.uncategorized." + s, (k, v) -> v == null ? 01 : v + 1);
-                this.termFreqs.compute("lexer.types.formal_parameter." + s, (k, v) -> v == null ? 01 : v + 1);
+                this.termFreqs.compute("lexer.types.uncategorized." + s, (k, v) -> v == null? 01 : v + 1);
+                this.termFreqs.compute("lexer.types.formal_parameter." + s, (k, v) -> v == null? 01 : v + 1);
             });
         });
     }
@@ -229,8 +229,8 @@ public class StatsListener extends JavaBaseListener {
     @Override
     public void enterLocalVariableDeclaration(JavaParser.LocalVariableDeclarationContext ctx) {
         types(ctx.typeType()).forEach(s -> {
-            this.termFreqs.compute("lexer.types.uncategorized." + s, (k, v) -> v == null ? 01 : v + 1);
-            this.termFreqs.compute("lexer.types.local_variable." + s, (k, v) -> v == null ? 01 : v + 1);
+            this.termFreqs.compute("lexer.types.uncategorized." + s, (k, v) -> v == null? 01 : v + 1);
+            this.termFreqs.compute("lexer.types.local_variable." + s, (k, v) -> v == null? 01 : v + 1);
         });
     }
 
@@ -292,7 +292,7 @@ public class StatsListener extends JavaBaseListener {
         stats.put("varsPerMethodCount", decimalFormat.format(getVarsPerMethodCount()));
         stats.put("avgIdentifierLength", decimalFormat.format(getAvgIdentifierLength()));
         stats.put("maxBlockNestLevel", String.valueOf(getMaxBlockNestLevel()));
-        termFreqs.forEach((k, v) -> stats.put(k, Double.toString(v)));
+        termFreqs.forEach((k, v) -> stats.put(k, Double.toString(Double.valueOf(v))));
     }
 
     @Override
