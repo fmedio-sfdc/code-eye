@@ -22,7 +22,7 @@ def get_files_from_changelist(fname):
         if (cl == ''):
             break
         # always skip autointegrations. They will be processed in the original p4 checkin
-        if re.search('autointeg@', line):
+        if re.search('autointeg@', cl):
             continue
         files = changelists.parseFiles(cl)
         allfiles.append(files)
