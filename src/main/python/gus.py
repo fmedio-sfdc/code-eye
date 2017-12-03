@@ -1,61 +1,39 @@
-import os
 import sys
-import fileinput
-from pathlib import Path
 import json
 import subprocess
 
 
-def query_gus(fileinfos, gusIds):
+def query_gus(gusIds, sessionId):
     url = "https://gus.my.salesforce.com/services/data/v20.0/query/?q=SELECT+Id,Type__c+FROM+ADM_Work__c+WHERE+Id+in+(\'" + "','".join(gusIds) + "\')"
     auth = "Authorization: Bearer " + sessionId
-    sys.stderr.write("querying gus\n")
-    sys.stderr.write("url: {0}".format(url))
-    sys.stderr.write("auth: {0}".format(auth))
+    #sys.stderr.write("querying gus\n")
+    #sys.stderr.write("url: {0}".format(url))
+    #sys.stderr.write("auth: {0}".format(auth))
     process = subprocess.run(["curl", url, "-H", auth], stdout=subprocess.PIPE)
     gusResponse = process.stdout.decode(encoding='UTF-8')
     gusJson = json.loads(gusResponse)
     sys.stderr.write(json.dumps(gusJson, indent=4, sort_keys=True))
 
-    #add work type to fileinfo
-    types = {}
+    return queryToIds(gusJson)
+
+def queryToIds(gusJson):
+    idsToRecordTypes = {}
     for gusRecord in gusJson['records']:
-        types[gusRecord['Id'][:15]] = gusRecord['Type__c']
+        idsToRecordTypes[gusRecord['Id'][:15]] = gusRecord['Type__c']
 
-    #sys.stderr.write(json.dumps(types))
+    return idsToRecordTypes
+
+def assignRecordTypes(fileinfos, idsToRecordTypes):
+    sys.stderr.write("gusids: {0}".format(idsToRecordTypes))
     for fileinfo in fileinfos:
-        if (fileinfo['p4.gusid'] and fileinfo['p4.gusid'] in types):
-            fileinfo['gus.worktype'] = types[fileinfo['p4.gusid'][:15]]
-            print(json.dumps(fileinfo, separators=(',', ':')))
-        elif (fileinfo['filename']):
-            sys.stderr.write("no gusid: skipping: {0}\n".format(fileinfo['filename']))
-
-sessionId = os.environ.get('GUS_SESSION_ID')
-if (not sessionId):
-    sys.stderr.write("Error: Expected environment variable: GUS_SESSION_ID\n")
-    exit()
-#sys.stderr.write("SessionId: {0}".format(sessionId))
-
-maxGusIds = 200
-count = 0
-gusIds = set()
-fileinfos = []
-for line in fileinput.input():
-    onefile = json.loads(line)
-    gusId = onefile['p4.gusid']
-    if (len(gusId) == 15 or len(gusId) == 18):
-        if (not gusId in gusIds):
-            if count >= maxGusIds:
-                query_gus(fileinfos, gusIds)
-                # initialize fileinfos to contain the one unprocessed file
-                fileinfos = []
-                gusIds = set()
-                gusIds.add(gusId)
-                count = 1
+        if ('p4.gusid' in fileinfo):
+            if (fileinfo['p4.gusid'] in idsToRecordTypes):
+                if (idsToRecordTypes[fileinfo['p4.gusid'][:15]] != 'Integrate'):
+                    fileinfo['gus.worktype'] = idsToRecordTypes[fileinfo['p4.gusid'][:15]]
+                else:
+                    sys.stderr.write("integration: skipping: {0}\n".format(fileinfo['filename']))
             else:
-                gusIds.add(gusId)
-                count += 1
-        fileinfos.append(onefile)
-if fileinfos:
-    query_gus(fileinfos, gusIds)
+                sys.stderr.write("no gus record type: skipping: {0}\n".format(fileinfo['p4.gusid']))
+        elif ('filename' in fileinfo):
+            sys.stderr.write("no gusid: skipping: {0}\n".format(fileinfo['filename']))
 
