@@ -58,7 +58,7 @@ public class TermStatistics {
                 float termFrequency = entry.getValue().getAsFloat();
                 long docFrequency = indexReader.docFreq(new Term(FIELD_NAME, entry.getKey()));
                 float tf = similarity.tf((termFrequency / numTerms));
-                float idf = tf * similarity.idf(docFrequency, indexReader.numDocs());
+                float idf = similarity.idf(docFrequency, indexReader.numDocs());
                 float score = tf * idf * idf;
                 rescored.add(entry.getKey(), new JsonPrimitive(score));
             } else {

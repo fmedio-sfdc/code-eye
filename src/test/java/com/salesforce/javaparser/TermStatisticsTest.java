@@ -29,7 +29,6 @@ public class TermStatisticsTest {
         assertEquals(1.0d, rescored.get("lexer.types.field.ConnectUri").getAsDouble(), 0.00001d);
 
         rescored = termStatistics.rescore(indexReader, iterator.next());
-        assertEquals(0.6495d, rescored.get("lexer.types.field.ConnectUri").getAsDouble(), 0.001d);
-        assertEquals(0.2469d, rescored.get("lexer.types.field.Panda").getAsDouble(), 0.001d);
+        assertEquals(0.9876d, rescored.get("lexer.types.field.Panda").getAsDouble(), 0.0001d);
     }
 }
