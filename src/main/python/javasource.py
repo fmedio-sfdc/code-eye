@@ -35,9 +35,6 @@ for line in fileinput.input():
             sys.stderr.write("Skipping {0}, decremented version was null\n".format(fileRev))
             continue
 
-        fixInfo['filename'] = fileVersion
-        patchVersions.add(fileVersion)
-
         # copy bug file info to a new set of keys
         fixInfo['fix.filename'] = fileRev
         fixInfo['fix.p4.gusid'] = fixInfo['p4.gusid']
@@ -50,6 +47,9 @@ for line in fileinput.input():
 
         # replace previous p4 values with the values from the decremented CL
         fixInfo.update(bugInfo)
+        fixInfo['filename'] = p4cache.p4GetCachedPath(fileVersion)
+        patchVersions.add(fileVersion)
+
         fixInfo.update(additionalBugInfo)
 
         fixInfo["label"] = "1"

@@ -45,7 +45,8 @@ def parseInfo(clStr):
     date = matched.group(3)
     time = matched.group(4)
 
-    if "release" in committer:
+    # wcheung is the person who performs code line cutover. Skip all of those cls
+    if "release" in committer or "wcheung" in committer:
         return {}
 
     rev = re.search('@rev ([\w.]+)@', clStr, re.IGNORECASE)
@@ -57,20 +58,23 @@ def parseInfo(clStr):
     gusId = ''
     if gus:
         gusId = normalizeGusId(gus.group(1))
-    javaFiles = [f.group(1) for f in re.finditer('... (//.+java#[0-9]+)', clStr)]
+    javaFiles = re.findall('... (//.+java#[0-9]+)', clStr)
     return {"p4.change":change, "p4.committer":committer, "p4.date":date, "p4.time":time, "p4.gusid":gusId, "p4.filecount":len(javaFiles)}
 
 def parseFiles(clStr):
     info = parseInfo(clStr)
-    if (not info or not info['p4.gusid']):
-        if (not info['p4.gusid']):
-            sys.stderr.write("Skipping CL {0}. Bad gus id.".format(info['p4.change']))
+    if (not info):
+        # empty means this CL was skipped for some reason
+        return []
+    elif ('p4.gusid' not in info or not info['p4.gusid']):
+        sys.stderr.write("Skipping CL {0}. Bad gus id.\n".format(info['p4.change']))
         return []
     files = []
-    javaFiles = [f.group(1) for f in re.finditer('... (//.+java#[0-9]+)', clStr)]
+    javaFiles = re.findall('... (//.+java#[0-9]+)', clStr)
     for oneFile in javaFiles:
-        info['filename'] = oneFile
-        files.append(info)
+        f = {'filename':oneFile}
+        f.update(info)
+        files.append(f)
     return files
 
 def peel_all(fname):
