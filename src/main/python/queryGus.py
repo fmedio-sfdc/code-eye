@@ -23,11 +23,10 @@ fileinfos = []
 for line in fileinput.input():
     onefile = json.loads(line)
     gusId = sfdcid.to15(onefile['p4.gusid'])
-    if (gusid):
+    if (gusId):
         if (not gusId in gusIdCache):
             if count >= maxQueryCount:
                 idsToRecordTypes = gus.query_gus(gusIdCache, sessionId)
-                sys.stderr.write(json.dumps(idsToRecordTypes, separators=(',', ':')))
                 gus.assignRecordTypes(fileinfos, idsToRecordTypes)
                 emitFileInfos(fileinfos)
 
