@@ -19,8 +19,8 @@ def captured_output():
 class TestGus(unittest.TestCase):
 
     def test_happy_path(self):
-        fileinfos = [ {'filename':'foo', 'p4.gusid':'id1'} ]
-        gus.assignRecordTypes(fileinfos, {'id1':'type1'})
+        fileinfos = [ {'filename':'foo', 'p4.gusid':'a07456789012345'} ]
+        gus.assignRecordTypes(fileinfos, {'a07456789012345':'type1'})
         self.assertEqual(fileinfos[0]['gus.worktype'], 'type1')
 
     def test_bad_gus_id(self):
@@ -36,9 +36,9 @@ class TestGus(unittest.TestCase):
         self.assertIn('no gus record type', err.getvalue().strip())
 
     def test_integration(self):
-        fileinfos = [ {'filename':'foo', 'p4.gusid':'id1'} ]
+        fileinfos = [ {'filename':'foo', 'p4.gusid':'a07456789012345'} ]
         with captured_output() as (std, err):
-            gus.assignRecordTypes(fileinfos, {'id1':'Integrate'})
+            gus.assignRecordTypes(fileinfos, {'a07456789012345':'Integrate'})
         self.assertIn('integration', err.getvalue().strip())
 
     def test_queryToGus(self):
