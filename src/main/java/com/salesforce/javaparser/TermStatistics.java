@@ -14,18 +14,6 @@ import org.apache.lucene.store.Directory;
 
 import com.google.gson.*;
 
-
-/*
-
-TODO:
-{
-    "docFreq.lexer.this": "23.42",
-    "termFreq.lexer.this": "23.42"
-}
-
-TODO: compress data artifacts
-*/
-
 public class TermStatistics {
     private ClassicSimilarity similarity = new ClassicSimilarity();
 
