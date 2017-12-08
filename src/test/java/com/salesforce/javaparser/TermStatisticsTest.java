@@ -26,9 +26,24 @@ public class TermStatisticsTest {
         iterator = new FrameParser(new StringBufferInputStream(FrameParserTest.INPUT));
 
         JsonObject rescored = termStatistics.rescore(indexReader, iterator.next());
-        assertEquals(1.0d, rescored.get("lexer.types.field.ConnectUri").getAsDouble(), 0.00001d);
+        assertEquals(2, rescored.get("termstatistics.documentlength").getAsInt());
+        assertEquals(1.0d, rescored.get("termstatistics.tfidf.lexer.types.field.ConnectUri").getAsDouble(), 0.00001d);
+        assertEquals(2, rescored.get("termstatistics.termfrequency.lexer.types.field.ConnectUri").getAsInt());
+        assertEquals(2, rescored.get("termstatistics.docfrequency.lexer.types.field.ConnectUri").getAsInt());
 
         rescored = termStatistics.rescore(indexReader, iterator.next());
-        assertEquals(0.9876d, rescored.get("lexer.types.field.Panda").getAsDouble(), 0.0001d);
+        assertEquals(4, rescored.get("termstatistics.documentlength").getAsInt());
+        assertEquals(0.9876d, rescored.get("termstatistics.tfidf.lexer.types.field.Panda").getAsDouble(), 0.0001d);
+        assertEquals(1, rescored.get("termstatistics.termfrequency.lexer.types.field.Panda").getAsInt());
+        assertEquals(1, rescored.get("termstatistics.docfrequency.lexer.types.field.Panda").getAsInt());
     }
 }
+
+/*
+ JsonObject rescored = termStatistics.rescore(indexReader, iterator.next());
+        termstatistics.documentlength
+        termstatistics.tfidf.lexer.types.field.ConnectUri
+        termstatistics.termfrequency.lexer.types.field.ConnectUri
+        termstatistics.docfrequency.lexer.types.field.ConnectUri
+
+ */
