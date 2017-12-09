@@ -14,7 +14,6 @@ import org.apache.lucene.store.Directory;
 
 import com.google.gson.*;
 
-
 public class TermStatistics {
     private ClassicSimilarity similarity = new ClassicSimilarity();
 
@@ -52,7 +51,7 @@ public class TermStatistics {
         JsonObject rescored = new JsonObject();
 
         Set<Entry<String, JsonElement>> entries = jsonObject.entrySet();
-
+        rescored.add("termstatistics.documentlength", new JsonPrimitive((int) numTerms));
         for (Entry<String, JsonElement> entry : entries) {
             if (entry.getKey().startsWith("lexer.")) {
                 float termFrequency = entry.getValue().getAsFloat();
@@ -60,7 +59,9 @@ public class TermStatistics {
                 float tf = similarity.tf((termFrequency / numTerms));
                 float idf = similarity.idf(docFrequency, indexReader.numDocs());
                 float score = tf * idf * idf;
-                rescored.add(entry.getKey(), new JsonPrimitive(score));
+                rescored.addProperty("termstatistics.termfrequency." + entry.getKey(), (int) termFrequency);
+                rescored.addProperty("termstatistics.docfrequency." + entry.getKey(), (int) docFrequency);
+                rescored.addProperty("termstatistics.tfidf." + entry.getKey(), score);
             } else {
                 rescored.add(entry.getKey(), entry.getValue());
             }
