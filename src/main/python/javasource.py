@@ -1,7 +1,6 @@
 import p4cache
 import re
 import sys
-from pathlib import Path
 import random
 import json
 import fileinput
@@ -9,12 +8,9 @@ import changelists
 
 
 patchVersions = set()
-# the following will iterate over all lines of all filenames on the cmd line OR stdin
-# to use this script make sure all inputs with gus.worktype of type bug or test failure are provided
-# before inputs with non-bug worktypes. You can either specify a file containing all bugs followed by a file
-# containing no bugs, or simply provide stdin input that follows that is sorted bugs first
 regex = re.compile('\.java#(\d+)')
 nonBug = []
+# the following will iterate over all lines of all filenames on the cmd line OR stdin
 for line in fileinput.input():
     fixInfo = json.loads(line)
     fileRev = fixInfo['filename']

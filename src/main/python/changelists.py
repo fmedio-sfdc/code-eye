@@ -2,6 +2,7 @@ import re
 import sys
 import json
 from pathlib import Path
+import sfdcid
 
 def flush(fptr):
      last_pos = fptr.tell()
@@ -28,13 +29,6 @@ def peel(fptr):
         line = fptr.readline()
     return cl
 
-def normalizeGusId(gusId):
-    if (len(gusId) < 15 or len(gusId) > 18):
-        gusId = ''
-    elif (len(gusId) > 15 and len(gusId) < 18):
-        gusId = gusId[:15]
-    return gusId
-
 def parseInfo(clStr):
     matched = re.search('Change (\d+) by ([\w.-]+)@[-:.\w\d]+ on (\d{4}/\d{2}/\d{2}) (\d{2}:\d{2}:\d{2})', clStr)
     if (not matched):
@@ -52,12 +46,12 @@ def parseInfo(clStr):
     rev = re.search('@rev ([\w.]+)@', clStr, re.IGNORECASE)
     if rev:
         reviewer = rev.group(1)
+    gusId = ''
     gus = re.search('https://gus.my.salesforce.com/.*(a07[\w\d]+)', clStr)
     if not gus:
         gus = re.search('https://gus.lightning.force.com/.*(a07[\w\d]+)', clStr)
-    gusId = ''
     if gus:
-        gusId = normalizeGusId(gus.group(1))
+        gusId = sfdcid.to15(gus.group(1))
     javaFiles = re.findall('... (//.+java#[0-9]+)', clStr)
     return {"p4.change":change, "p4.committer":committer, "p4.date":date, "p4.time":time, "p4.gusid":gusId, "p4.filecount":len(javaFiles)}
 
