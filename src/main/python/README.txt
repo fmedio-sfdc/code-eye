@@ -24,24 +24,24 @@ We use JSON dictionaries to store features for each java file that we process. E
     2. output: gus record type and label= 0 or 1 (based on gus type) added to dicts
     3. create environment variable GUS_SESSION_ID with a valid gus session id
     3. example: NOTE: use gshuf if that's what you have installed on your mac
-         (g)shuf -n 10000 retrieve.out | python queryGus.py 2>queryGus.err > queryGus-208-main.out
+         (g)shuf -n 10000 retrieve.out | python queryGus.py 2> >(tee queryGus.err) > queryGus-208-main.out
          or
-         (g)shuf -n 4000 retrieve-patch.out | python queryGus.py 2>queryGus.err > queryGus-208-patch.out
+         (g)shuf -n 4000 retrieve-patch.out | python queryGus.py 2> >(tee queryGus.err) > queryGus-208-patch.out
 4. Find java source. When label=1 find previous java version
     1. input: streamed
     2. outupt: substitute pre-bug java filename+version when label=1, skip files where label=0 if file already exists with label=1
     3. example:
-        cat queryGus-208-patch.out queryGus-208-main.out | python javasource.py 2>javasource.err > javasource.out
+        cat queryGus-208-patch.out queryGus-208-main.out | python javasource.py 2>  >(tee javasource.err) > javasource.out
 5. Add dates
     1. example
-        cat javasource.out | python addDates.py 2> >(tee addDates.err) > addDates.out
+        cat javasource.out | python addDates.py <release-number> 2> >(tee addDates.err) > addDates.out
 6. Analyze java source
     1. input: streamed
     2. output: add metrics from java parsing
     3. example:
-        cat addDates.out | java -jar ../code/target/java-source-analyzer-1.0-SNAPSHOT.jar 2>parser.err > parser.out
+        cat addDates.out | java -jar ../../../target/java-source-analyzer-1.0-SNAPSHOT.jar 2>parser.err > parser.out
 7. Rescore java lexer tokens, convert term frequencies to TF-IDF scores
     1. input: output of 5
     2. output: same format as input, with tf-idf scores instead of freqs
-    3. example: java -cp ../code/target/java-source-analyzer-1.0-SNAPSHOT.jar com.salesforce.javaparser.RescoreAll parser.out rescored.out
+    3. example: java -cp ../../../target/java-source-analyzer-1.0-SNAPSHOT.jar com.salesforce.javaparser.RescoreAll parser.out rescored.out
 
