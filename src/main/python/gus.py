@@ -13,6 +13,9 @@ def query_gus(gusIds, sessionId):
     process = subprocess.run(["curl", url, "-H", auth], stdout=subprocess.PIPE)
     gusResponse = process.stdout.decode(encoding='UTF-8')
     gusJson = json.loads(gusResponse)
+    #sys.stderr.write("json: {0}".format(gusJson))
+    if (isinstance(gusJson, list) and 'errorCode' in gusJson[0].keys()):
+        raise ValueError(gusJson[0]['message'])
 
     return queryToIds(gusJson)
 

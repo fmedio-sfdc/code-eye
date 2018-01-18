@@ -76,8 +76,9 @@ def parse_filelog(filelog):
 
     return result
 
+integration_types = ['integrate', 'import', 'branch', 'merge', 'move/add']
 def isIntegrate(revision):
-    return (revision['p4.action'] == 'integrate' or revision['p4.action'] == 'import' or revision['p4.action'] == 'branch' or revision['p4.action'] == 'merge')
+    return revision['p4.action'] in integration_types
 
 def parse_revision(filelogRevision):
         # grab the p4 info from the CL associated with the previous version of the file
@@ -123,6 +124,8 @@ def extract_moved_from_path(filelogOutput):
         if was_moved(line):
             pattern = re.compile('.*//app(.*)$')
             match = pattern.match(line)
+            if (not match):
+                return None
             path = "//app{0}".format(match.group(1))
             return re.sub(r'(\#\d+,)','',path)
 
@@ -182,7 +185,7 @@ def p4GetCachedPath(p4Path):
 
         # if cache exists -> load it and return its content
         if os.path.exists(cachefile):
-            sys.stderr.write("using cached result from '{0}'\n".format(cachefile))
+            #sys.stderr.write("using cached result from '{0}'\n".format(cachefile))
             return cachefile
 
         process = subprocess.run(["p4", "print", "-q", p4Path], stdout=subprocess.PIPE)

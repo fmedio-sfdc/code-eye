@@ -45,7 +45,9 @@ def parseInfo(clStr):
 
     rev = re.search('@rev ([\w.]+)@', clStr, re.IGNORECASE)
     if rev:
-        reviewer = rev.group(1)
+        reviewer = rev.group(1).lower()
+    else:
+        reviewer = 'none'
     gusId = ''
     gus = re.search('https://gus.my.salesforce.com/.*(a07[\w\d]+)', clStr)
     if not gus:
@@ -53,7 +55,7 @@ def parseInfo(clStr):
     if gus:
         gusId = sfdcid.to15(gus.group(1))
     javaFiles = re.findall('... (//.+java#[0-9]+)', clStr)
-    return {"p4.change":change, "p4.committer":committer, "p4.date":date, "p4.time":time, "p4.gusid":gusId, "p4.filecount":len(javaFiles)}
+    return {"p4.change":change, "p4.committer":committer, "p4.reviewer":reviewer, "p4.date":date, "p4.time":time, "p4.gusid":gusId, "p4.filecount":len(javaFiles)}
 
 def parseFiles(clStr):
     info = parseInfo(clStr)
@@ -64,9 +66,9 @@ def parseFiles(clStr):
         sys.stderr.write("Skipping CL {0}. Bad gus id.\n".format(info['p4.change']))
         return []
     files = []
-    javaFiles = re.findall('... (//.+java#[0-9]+)', clStr)
-    for oneFile in javaFiles:
-        f = {'filename':oneFile}
+    javaFiles = re.finditer('... (//.+java#[0-9]+) ([\w\/]*)', clStr)
+    for match in javaFiles:
+        f = {'filename':match.group(1), 'p4.action':match.group(2)}
         f.update(info)
         files.append(f)
     return files
