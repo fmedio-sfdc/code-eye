@@ -10,24 +10,75 @@ import re
 
 
 def decrement_patch_version(filename):
-    filelog = get_file_history(filename)
+    filelog = getFilelog(filename)
     #print("filelog = {0}".format(filelog))
     return parse_filelog(filelog)
+
+# expecting filelog output matching
+# //app/206/patch/core/search/java/src/search/solr/client/impl/SolrServerImpl.java
+#... #7 change 12898330 integrate on 2017/01/26 10:53:43 by autointeg@gridmanager:vm:10.252.14.128 (text) 'Autointegrate Change: [12897602'
+#... ... copy from //app/206/freeze/core/search/java/src/search/solr/client/impl/SolrServerImpl.java#7
+#... #6 change 12743941 edit on 2016/12/21 09:34:19 by guillaume.kempf@gridmanager:vm:10.252.15.5 (text) 'Entity Prediction: use speciali'
+# for integrations there is a second line showing the origin of the integration
+# for edits there is no second line
+# in both cases we want to find the file and the CL that was the source of the previous revision
+# if file was integrated then we need to find the change associated with the integration
+
+
+# for any integration we will need to recursively call p4 filelog on the moved from version
+# for example the version 4 of this file
+# stager-ltm3:~ stager$ p4 filelog -m 2 -t "//app/208/patch/core/s2x/test/unit/java/src/strictunit/sync/s2x/sfdcchanges/S2XDeleteTest.java#4"
+# returns output like this
+#//app/208/patch/core/s2x/test/unit/java/src/strictunit/sync/s2x/sfdcchanges/S2XDeleteTest.java
+#... #4 change 13472293 edit on 2017/04/20 12:26:16 by cschenkeltherolf@gridmanager:vm:10.252.13.193 (text) 'Only toggle S2XOrgCanSchedExter'
+#... ... copy into //app/208/freeze/core/s2x/test/unit/java/src/strictunit/sync/s2x/sfdcchanges/S2XDeleteTest.java#4
+#... ... copy into //app/main/core/s2x/test/unit/java/src/strictunit/sync/s2x/sfdcchanges/S2XDeleteTest.java#6
+#... #3 change 13203123 integrate on 2017/03/17 09:26:06 by wcheung@wcheung-ltm (text) 'Autointegrate Control: @skip@ b'
+#... ... copy into //app/208/freeze/core/s2x/test/unit/java/src/strictunit/sync/s2x/sfdcchanges/S2XDeleteTest.java#3
+#... ... copy from //app/main/core/s2x/test/unit/java/src/strictunit/sync/s2x/sfdcchanges/S2XDeleteTest.java#5
+# which means we need to find the CL that main#5 was checked in with:
+#stager-ltm3:~ stager$ p4 filelog -m 1 -t  "//app/main/core/s2x/test/unit/java/src/strictunit/sync/s2x/sfdcchanges/S2XDeleteTest.java#5"
+#//app/main/core/s2x/test/unit/java/src/strictunit/sync/s2x/sfdcchanges/S2XDeleteTest.java
+#... #5 change 13200619 edit on 2017/03/16 18:39:05 by cschenkeltherolf@gridmanager:vm:10.252.19.143 (text) 'Test sync.s2x.sfdcchanges.S2XDe'
+#... ... copy into //app/208/patch/core/s2x/test/unit/java/src/strictunit/sync/s2x/sfdcchanges/S2XDeleteTest.java#3
+#... ... copy into //build/env/mirror/app/main/core/s2x/test/unit/java/src/strictunit/sync/s2x/sfdcchanges/S2XDeleteTest.java#4
 
 def parse_filelog(filelog):
     buffer = StringIO(filelog)
     filename = buffer.readline()
-    #print("filename: {0}".format(filename))
+    # skip the current revision
+    line = buffer.readline()
+    ignore = parse_revision(line)
+    if (isIntegrate(ignore)):
+        sys.stderr.write("ignoring integration cl:\n  {0}\n".format(line))
+        buffer.readline() # ignore the next line too
+
+    # parse the previous revision
     result = parse_revision(buffer.readline())
-    if (result['p4.action'] == 'integrate' or result['p4.action'] == 'import' or result['p4.action'] == 'branch' or result['p4.action'] == 'merge'):
-        result['filename'] = extract_moved_from_path(buffer.readline())
-    else:
-        editRevision = buffer.readline()
-        #print("edit revision: {0}".format(editRevision))
-        result = parse_revision(editRevision)
-        result['filename'] = "{0}#{1}".format(filename.strip("\n"), result['p4.version'])
+    if (isIntegrate(result)):
+        integFile = buffer.readline()
+        while (isIntegrate(result)):
+            #sys.stderr.write("extracting\n {0}\n".format(integFile))
+            integrateRev = extract_moved_from_path(integFile)
+            if (not integrateRev):
+                raise ValueError("couldn't extract move path from {0}\n".format(integFile))
+            #sys.stderr.write("integrateRev\n {0}\n".format(integrateRev))
+            integFilelog = getFilelog(integrateRev)
+            #sys.stderr.write("filelog\n {0}\n".format(integFilelog))
+            buffer2 = StringIO(integFilelog)
+            filename = buffer2.readline()
+            #sys.stderr.write("filename\n {0}\n".format(filename))
+            nextLine = buffer2.readline()
+            result = parse_revision(nextLine)
+            #sys.stderr.write("revision\n {0}\n".format(nextLine))
+            integFile = buffer2.readline()
+    result['filename'] = "{0}#{1}".format(filename.strip("\n"), result['p4.version'])
 
     return result
+
+integration_types = ['integrate', 'import', 'branch', 'merge', 'move/add']
+def isIntegrate(revision):
+    return revision['p4.action'] in integration_types
 
 def parse_revision(filelogRevision):
         # grab the p4 info from the CL associated with the previous version of the file
@@ -49,7 +100,7 @@ def parse_revision(filelogRevision):
 
 
 # avoid calling this function for 'add' files. Only call it for 'edit' files
-def get_file_history(p4FileRev):
+def getFilelog(p4FileRev):
     # p4 filelog -m 1 filename
     # -s = summary, i.e. ignoring non-contributory integrations
     # -t = time of day
@@ -65,7 +116,7 @@ def get_cl(changeId):
 # expecting a line like this:
 # ... ... moved from //app/main/core/sfdc/java/src/common/udd/BitsToEnableInPreWindow.java#1,#799
 def was_moved(filelogOutput):
-    return '... moved from' in filelogOutput or '... branch from' in filelogOutput or '... copy from' in filelogOutput
+    return '... moved from' in filelogOutput or '... branch from' in filelogOutput or '... copy from' in filelogOutput or '... merge from' in filelogOutput or '... edit from' in filelogOutput
 
 def extract_moved_from_path(filelogOutput):
     buffer = StringIO(filelogOutput)
@@ -73,6 +124,8 @@ def extract_moved_from_path(filelogOutput):
         if was_moved(line):
             pattern = re.compile('.*//app(.*)$')
             match = pattern.match(line)
+            if (not match):
+                return None
             path = "//app{0}".format(match.group(1))
             return re.sub(r'(\#\d+,)','',path)
 
@@ -132,7 +185,7 @@ def p4GetCachedPath(p4Path):
 
         # if cache exists -> load it and return its content
         if os.path.exists(cachefile):
-            sys.stderr.write("using cached result from '{0}'\n".format(cachefile))
+            #sys.stderr.write("using cached result from '{0}'\n".format(cachefile))
             return cachefile
 
         process = subprocess.run(["p4", "print", "-q", p4Path], stdout=subprocess.PIPE)

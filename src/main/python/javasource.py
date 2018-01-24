@@ -55,12 +55,16 @@ for line in fileinput.input():
 
 for fixInfo in nonBug:
     fileRev = fixInfo['filename']
-    if ('gus.worktype' in fixInfo
-            and fileRev not in patchVersions):
-        if (random.randrange(3) == 0): # only use 1/3 of the input files
-            fixInfo["filename"] = p4cache.p4GetCachedPath(fileRev)
-            fixInfo["label"] = "0"
-            versionMatch = regex.search(fileRev)
-            fixInfo["p4version"] = versionMatch.group(1)
-            print(json.dumps(fixInfo, separators=(',', ':')))
+    if ('gus.worktype' in fixInfo):
+        if (fileRev not in patchVersions):
+            if (random.randrange(3) == 0): # only use 1/3 of the input files
+                fixInfo["filename"] = p4cache.p4GetCachedPath(fileRev)
+                fixInfo["label"] = "0"
+                versionMatch = regex.search(fileRev)
+                fixInfo["p4.version"] = versionMatch.group(1)
+                print(json.dumps(fixInfo, separators=(',', ':')))
+        else:
+            sys.stderr.write("Skipping {0}, same file found in patch".format(fileRev))
+    else:
+        sys.stderr.write("Skipping {0}, no gus worktype found".format(fileRev))
 #print(patchVersions)

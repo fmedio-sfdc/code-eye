@@ -6,6 +6,11 @@ import gus
 import sfdcid
 
 
+def queryAndAssign(fileinfos, gusIdCache, sessionId):
+    idsToRecordTypes = gus.query_gus(gusIdCache, sessionId)
+    gus.assignRecordTypes(fileinfos, idsToRecordTypes)
+    emitFileInfos(fileinfos)
+
 def emitFileInfos(fileinfos):
     for info in fileinfos:
         print(json.dumps(info, separators=(',', ':')))
@@ -26,9 +31,7 @@ for line in fileinput.input():
     if (gusId):
         if (not gusId in gusIdCache):
             if count >= maxQueryCount:
-                idsToRecordTypes = gus.query_gus(gusIdCache, sessionId)
-                gus.assignRecordTypes(fileinfos, idsToRecordTypes)
-                emitFileInfos(fileinfos)
+                queryAndAssign(fileinfos, gusIdCache, sessionId)
 
                 # reset local caches
                 fileinfos = []
@@ -41,5 +44,5 @@ for line in fileinput.input():
     else:
         sys.stderr.write("malformed gus id: {0}, {1}\n".format(onefile['filename'], onefile['p4.gusid']))
 if fileinfos:
-    gus.query_gus(fileinfos, gusIdCache)
+    queryAndAssign(fileinfos, gusIdCache, sessionId)
 

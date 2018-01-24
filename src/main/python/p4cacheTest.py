@@ -51,7 +51,7 @@ class TestP4Path(unittest.TestCase):
 
     def test_integrate_filelog(self):
         self.assertEqual(
-                '//app/206/freeze/core/search/java/src/search/solr/client/impl/SolrServerImpl.java#799',
+                '//app/206/patch/core/search/java/src/search/solr/client/impl/SolrServerImpl.java#6',
                 p4cache.parse_filelog(TestP4Path.fileoutput1)['filename'],
                 )
 
@@ -63,6 +63,18 @@ class TestP4Path(unittest.TestCase):
         self.assertEqual(
                 '//app/206/patch/core/search/java/src/search/solr/client/impl/SolrServerImpl.java#5',
                 p4cache.parse_filelog(TestP4Path.fileoutput2)['filename'],
+                )
+
+    # p4 filelog -s -t -m 2 "//app/208/patch/core/support/test/func/java/src/support/fieldservice/servicereport/template/ServiceReportTemplateEditorRTAUiTest.java#4"
+    fileoutput3 = """//app/208/patch/core/support/test/func/java/src/support/fieldservice/servicereport/template/ServiceReportTemplateEditorRTAUiTest.java
+... #4 change 13621003 edit on 2017/05/04 14:15:26 by tji@gridmanager:vm:10.252.15.251 (text) 'Test support.fieldservice.servi'
+... #3 change 13589379 integrate on 2017/04/29 01:15:41 by autointeg@gridmanager:vm:10.252.12.224 (text) 'Autointegrate Change: [13589320'
+... ... merge from //app/206/patch/core/support/test/func/java/src/support/fieldservice/servicereport/template/ServiceReportTemplateEditorRTAUiTest.java#5"""
+
+    def test_merge_from_filelog(self):
+        self.assertEqual(
+                '//app/206/patch/core/support/test/func/java/src/support/fieldservice/servicereport/template/ServiceReportTemplateEditorRTAUiTest.java#5',
+                p4cache.parse_filelog(TestP4Path.fileoutput3)['filename'],
                 )
 
 if __name__ == '__main__':
