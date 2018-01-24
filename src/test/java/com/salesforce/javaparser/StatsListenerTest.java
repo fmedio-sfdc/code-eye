@@ -33,11 +33,31 @@ public class StatsListenerTest {
         listener = new StatsListener();
     }
 
-    @Test
-    public void testMaxMethodLineCount() throws IOException {
-        parse("class Foo { public void m1() {\n\n} public void m2() {\n\n\n} }");
-        assertEquals(3, listener.getMaxMethodLineCount());
-    }
+    static String SOURCE =
+            "    class Foo<T> {\n" +
+                    "\n" +
+                    "        static {\n" +
+                    "            Panda p;\n" +
+                    "            StaticBlockVariable sbv;\n" +
+                    "        }\n" +
+                    "\n" +
+                    "        static final StaticField someStaticField = new StaticField();\n" +
+                    "        GenericField<T> field;\n" +
+                    "\n" +
+                    "        Foo(ConstructorParameter cp, T tee) {\n" +
+                    "\n" +
+                    "        }\n" +
+                    "\n" +
+                    "        ReturnType someMethod(MethodParameter mp, T tee) throws SomeException {\n" +
+                    "            Panda p;\n" +
+                    "            MethodVariable mv;\n" +
+                    "            T genericMethodVariable;\n" +
+                    "        }\n" +
+                    "\n" +
+                    "        void someOtherMethdod() throws SomeOtherException {}\n" +
+                    "\n" +
+                    "        void noExceptionsMethod() {}\n" +
+                    "    }";
 
     @Test
     public void testMethodBlockCount() {
@@ -64,21 +84,26 @@ public class StatsListenerTest {
     }
 
     @Test
-    public void testTypeTokens() throws Exception {
-        parse("class Foo<T> { static { Panda p; StaticBlockVariable sbv; } GenericField<T> field; Foo(ConstructorParameter cp, T tee) {} m(MethodParameter mp, T tee) {Panda p; MethodVariable mv; T genericMethodVariable;}}");
+    public void testMaxMethodLineCount() {
+        parse("class Foo { public void m1() {\n\n} public void m2() {\n\n\n} }");
+        assertEquals(3, listener.getMaxMethodLineCount());
+    }
+
+    @Test
+    public void testTypeTokens() {
+//        String source = "class Foo<T> { static { Panda p; StaticBlockVariable sbv; } GenericField<T> field; Foo(ConstructorParameter cp, T tee) {} m(MethodParameter mp, T tee) {Panda p; MethodVariable mv; T genericMethodVariable;}}";
+        parse(SOURCE);
         Map<String, String> stats = listener.getStats();
         Lists.newArrayList(
-                "lexer.types.uncategorized.GenericField<T>",
                 "lexer.types.field.GenericField<T>",
-                "lexer.types.uncategorized.GenericField",
                 "lexer.types.field.GenericField",
-                "lexer.types.uncategorized.ConstructorParameter",
-                "lexer.types.formal_parameter.ConstructorParameter",
-                "lexer.types.uncategorized.MethodParameter",
-                "lexer.types.formal_parameter.MethodParameter",
-                "lexer.types.uncategorized.MethodVariable",
+                "lexer.types.field.StaticField",
+                "lexer.types.method_signature.parameter.ConstructorParameter",
+                "lexer.types.method_signature.parameter.MethodParameter",
+                "lexer.types.method_signature.return_type.ReturnType",
+                "lexer.types.method_signature.exception.SomeException",
+                "lexer.types.method_signature.exception.SomeOtherException",
                 "lexer.types.local_variable.MethodVariable",
-                "lexer.types.uncategorized.StaticBlockVariable",
                 "lexer.types.local_variable.StaticBlockVariable",
                 "lexer.types.local_variable.T"
         )
@@ -87,15 +112,12 @@ public class StatsListenerTest {
                 });
 
         Lists.newArrayList(
-                "lexer.types.uncategorized.Panda",
                 "lexer.types.local_variable.Panda",
-                "lexer.types.formal_parameter.T"
+                "lexer.types.method_signature.parameter.T"
         )
                 .forEach(s -> {
                     assertEquals("No value for " + s, "2.0", stats.get(s));
                 });
-
-        assertEquals("3.0", stats.get("lexer.types.uncategorized.T"));
     }
 
     @Test
