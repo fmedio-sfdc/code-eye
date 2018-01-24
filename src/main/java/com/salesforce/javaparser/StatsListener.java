@@ -18,7 +18,6 @@ import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
 
 import java.io.File;
-import java.io.IOException;
 import java.lang.reflect.Type;
 import java.text.DecimalFormat;
 import java.util.*;
@@ -158,7 +157,7 @@ public class StatsListener extends JavaBaseListener {
         }
     }
 
-    private static Map<String, String> analyzeFile(CharStream stream) throws IOException {
+    private static Map<String, String> analyzeFile(CharStream stream) {
         JavaLexer lexer = new JavaLexer(stream);
         CommonTokenStream tokenStream = new CommonTokenStream(lexer);
         JavaParser parser = new JavaParser(tokenStream);
@@ -178,13 +177,58 @@ public class StatsListener extends JavaBaseListener {
     @Override
     public void enterMemberDeclaration(JavaParser.MemberDeclarationContext ctx) {
         if (ctx.fieldDeclaration() != null) {
+
+//            FM note for later: this is how modifiers are obtained
+//            List<JavaParser.ModifierContext> modifiers = ((JavaParser.ClassBodyDeclarationContext) ctx.getParent()).modifier();
+//            AtomicBoolean isStatic = new AtomicBoolean(false);
+//
+//            if (modifiers != null) {
+//                isStatic.set(modifiers.stream()
+//                        .map(m -> m.getText())
+//                        .filter(m -> "static".equals(m))
+//                        .findAny()
+//                        .isPresent());
+//            }
+
             types(ctx.fieldDeclaration().typeType())
                     .forEach(s -> {
-                        this.termFreqs.compute("lexer.types.uncategorized." + s, (k, v) -> v == null? 01 : v + 1);
                         this.termFreqs.compute("lexer.types.field." + s, (k, v) -> v == null? 01 : v + 1);
                     });
         }
     }
+
+    @Override
+    public void enterFormalParameterList(JavaParser.FormalParameterListContext ctx) {
+        ctx.formalParameter().forEach(fp -> {
+            types(fp.typeType()).forEach(s -> {
+                this.termFreqs.compute("lexer.types.method_signature.parameter." + s, (k, v) -> v == null ? 01 : v + 1);
+            });
+        });
+    }
+
+
+    @Override
+    public void enterLocalVariableDeclaration(JavaParser.LocalVariableDeclarationContext ctx) {
+        types(ctx.typeType()).forEach(s -> {
+            this.termFreqs.compute("lexer.types.local_variable." + s, (k, v) -> v == null ? 01 : v + 1);
+        });
+    }
+
+    @Override
+    public void enterMethodBody(JavaParser.MethodBodyContext ctx) {
+        JavaParser.TypeTypeContext typeTypeContext = ((JavaParser.MethodDeclarationContext) ctx.getParent()).typeType();
+        if (typeTypeContext != null) {
+            String returnType = typeTypeContext.getText();
+            this.termFreqs.compute("lexer.types.method_signature.return_type." + returnType, (k, v) -> v == null ? 01 : v + 1);
+        }
+
+        JavaParser.QualifiedNameListContext qnameList = ((JavaParser.MethodDeclarationContext) ctx.getParent()).qualifiedNameList();
+        if (qnameList != null) {
+            String exceptionName = qnameList.getText();
+            this.termFreqs.compute("lexer.types.method_signature.exception." + exceptionName, (k, v) -> v == null ? 01 : v + 1);
+        }
+    }
+
 
     private Collection<String> types(JavaParser.TypeTypeContext context) {
         Set<String> result = Sets.newHashSet();
@@ -198,17 +242,6 @@ public class StatsListener extends JavaBaseListener {
 
         return result;
     }
-
-    @Override
-    public void enterFormalParameterList(JavaParser.FormalParameterListContext ctx) {
-        ctx.formalParameter().forEach(fp -> {
-            types(fp.typeType()).forEach(s -> {
-                this.termFreqs.compute("lexer.types.uncategorized." + s, (k, v) -> v == null? 01 : v + 1);
-                this.termFreqs.compute("lexer.types.formal_parameter." + s, (k, v) -> v == null? 01 : v + 1);
-            });
-        });
-    }
-
     private static String combinePath(String fileDir, String fileName) {
         if (fileName.startsWith("//")) {
             fileName = fileName.substring(2);
@@ -224,14 +257,6 @@ public class StatsListener extends JavaBaseListener {
             fileInDirectory = new File(fileName);
         }
         return fileInDirectory.getPath();
-    }
-
-    @Override
-    public void enterLocalVariableDeclaration(JavaParser.LocalVariableDeclarationContext ctx) {
-        types(ctx.typeType()).forEach(s -> {
-            this.termFreqs.compute("lexer.types.uncategorized." + s, (k, v) -> v == null? 01 : v + 1);
-            this.termFreqs.compute("lexer.types.local_variable." + s, (k, v) -> v == null? 01 : v + 1);
-        });
     }
 
     /**
