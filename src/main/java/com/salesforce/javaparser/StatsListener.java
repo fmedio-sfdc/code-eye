@@ -224,8 +224,12 @@ public class StatsListener extends JavaBaseListener {
 
         JavaParser.QualifiedNameListContext qnameList = ((JavaParser.MethodDeclarationContext) ctx.getParent()).qualifiedNameList();
         if (qnameList != null) {
-            String exceptionName = qnameList.getText();
-            this.termFreqs.compute("lexer.types.method_signature.exception." + exceptionName, (k, v) -> v == null ? 01 : v + 1);
+            String exceptionList = qnameList.getText();
+            StringTokenizer tokenizer = new StringTokenizer(exceptionList, ",", false);
+            while (tokenizer.hasMoreTokens()) {
+                String exceptionClassName = tokenizer.nextToken();
+                this.termFreqs.compute("lexer.types.method_signature.exception." + exceptionClassName, (k, v) -> v == null ? 01 : v + 1);
+            }
         }
     }
 
