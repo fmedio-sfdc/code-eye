@@ -48,13 +48,13 @@ public class StatsListenerTest {
                     "\n" +
                     "        }\n" +
                     "\n" +
-                    "        ReturnType someMethod(MethodParameter mp, T tee) throws SomeException {\n" +
+                    "        ReturnType someMethod(MethodParameter mp, T tee) throws SomeException,PandaException {\n" +
                     "            Panda p;\n" +
                     "            MethodVariable mv;\n" +
                     "            T genericMethodVariable;\n" +
                     "        }\n" +
                     "\n" +
-                    "        void someOtherMethdod() throws SomeOtherException {}\n" +
+                    "        void someOtherMethdod() throws AnotherException, SomeOtherException {}\n" +
                     "\n" +
                     "        void noExceptionsMethod() {}\n" +
                     "    }";
@@ -103,6 +103,8 @@ public class StatsListenerTest {
                 "lexer.types.method_signature.return_type.ReturnType",
                 "lexer.types.method_signature.exception.SomeException",
                 "lexer.types.method_signature.exception.SomeOtherException",
+                "lexer.types.method_signature.exception.AnotherException",
+                "lexer.types.method_signature.exception.PandaException",
                 "lexer.types.local_variable.MethodVariable",
                 "lexer.types.local_variable.StaticBlockVariable",
                 "lexer.types.local_variable.T"
