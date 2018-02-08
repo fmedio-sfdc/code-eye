@@ -44,24 +44,19 @@ We use JSON dictionaries to store features for each java file that we process. E
     2. output: add label= 0 or 1 (based on gus type)
        output: substitute pre-bug java filename+version when label=1, skip files where label=0 if file already exists with label=1
     3. example:
-        cat gus-fixes-208-patch.out gus-fixes-208-main.out | python javasource.py 2>  >(tee javasource.err) > javasource-208-all.out
+        cat gus-fixes-208-patch.out gus-fixes-208-main.out gus-fixes-210-patch.out gus-fixes-210-main.out | python javasource.py 2>  >(tee javasource.err) > javasource-208-210-all.out
 
-        cat gus-fixes-210-patch.out gus-fixes-210-main.out | python javasource.py 2>  >(tee javasource.err) > javasource-210-all.out
 
 5. Retrieve GUS info for buggy CLs - this step will replace the existing gus.worktype with the worktype of the gus record associated with the
     1. input: streamed
     2. output: gus record type and label= 0 or 1 (based on gus type) added to dicts
     3. create environment variable GUS_SESSION_ID with a valid gus session id
     4. example:
-        cat javasource-208-all.out | python queryGus.py 2> >(tee queryGus-bugs.err) > gus-bugs-208-all.out
-
-        cat javasource-210-all.out | python queryGus.py 2> >(tee queryGus-bugs.err) > gus-bugs-210-all.out
+        cat javasource-208-210-all.out | python queryGus.py 2> >(tee queryGus-bugs.err) > gus-bugs-208-210-all.out
 
 6. Add dates
     1. example
-        cat gus-bugs-208-all.out | python addDates.py 208 2> >(tee addDates.err) > addDates-208-all.out
-
-        cat gus-bugs-210-all.out | python addDates.py 210 2> >(tee addDates.err) > addDates-210-all.out
+        cat gus-bugs-208-210-all.out | python extractDate.py 2> >(tee addDates.err) > extractDates-208-210-all.out
 
 Sample data artifact: 208-all-addDates.out.gz
 
@@ -69,9 +64,7 @@ Sample data artifact: 208-all-addDates.out.gz
     1. input: streamed
     2. output: add metrics from java parsing
     3. example:
-        cat addDates-208-all.out | java -jar ../../../target/java-source-analyzer-1.0-SNAPSHOT.jar 2>parser.err > parser-208-all.out
-
-        cat addDates-210-all.out | java -jar ../../../target/java-source-analyzer-1.0-SNAPSHOT.jar 2>parser.err > parser-210-all.out
+        cat extractDates-208-210-all.out | java -jar ../../../target/java-source-analyzer-1.0-SNAPSHOT.jar 2>parser.err > parser-208-210-all.out
 
 Sample data artifact: 208-all-parser.out.gz
 
@@ -79,8 +72,7 @@ Sample data artifact: 208-all-parser.out.gz
     1. input: output of 5
     2. output: same format as input, with tf-idf scores instead of freqs
     3. example:
-        java -cp ../../../target/java-source-analyzer-1.0-SNAPSHOT.jar com.salesforce.javaparser.RescoreAll parser-208-all.out rescored-208-all.out
+        java -cp ../../../target/java-source-analyzer-1.0-SNAPSHOT.jar com.salesforce.javaparser.RescoreAll parser-208-210-all.out rescored-208-210-all.out
 
-        java -cp ../../../target/java-source-analyzer-1.0-SNAPSHOT.jar com.salesforce.javaparser.RescoreAll parser-210-all.out rescored-210-all.out
 
 Sample data artifact: 208-all-rescored.out.gz
