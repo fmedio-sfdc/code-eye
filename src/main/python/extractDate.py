@@ -11,8 +11,14 @@ for line in fileinput.input():
     info = json.loads(line)
     filename = info['filename']
     release = filename.split("/")[1]
+    if (release < "206"):
+        continue
     date = info['p4.date']
     label, daysBefore = dates.daysBefore(date, alldates[release])
-    info.update({'date.label':label, 'date.days':daysBefore})
+    if ("main" in release):
+        # extract the release number from label like: 'dates.main.208'
+        release = label.split(".")[2]
+        label = "clco"
+    info.update({'date.release':release, 'date.label':label, 'date.days':daysBefore})
     print(json.dumps(info, separators=(',', ':')))
 
