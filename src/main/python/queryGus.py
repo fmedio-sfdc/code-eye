@@ -28,7 +28,14 @@ fileinfos = []
 for line in fileinput.input():
     onefile = json.loads(line)
     gusId = sfdcid.to15(onefile['p4.gusid'])
-    if (gusId):
+    if (not gusId):
+        # there's no work id, check for a task id
+        taskId = sfdcid.to15(onefile['p4.gustaskid'])
+        if (not taskId):
+            sys.stderr.write("no well formed gus work item or task found: {0}, workid='{1}', taskid='{2}'\n".format(onefile['filename'], onefile['p4.gusid'], onefile['p4.gustaskid']))
+        else:
+            sys.stderr.write("TODO: retrieve gus work item from gus task id")
+    else:
         if (not gusId in gusIdCache):
             if count >= maxQueryCount:
                 queryAndAssign(fileinfos, gusIdCache, sessionId)
@@ -41,8 +48,6 @@ for line in fileinput.input():
                 count += 1
             gusIdCache.add(gusId)
         fileinfos.append(onefile)
-    else:
-        sys.stderr.write("malformed gus id: {0}, {1}\n".format(onefile['filename'], onefile['p4.gusid']))
 if fileinfos:
     queryAndAssign(fileinfos, gusIdCache, sessionId)
 
