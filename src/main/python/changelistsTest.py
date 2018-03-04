@@ -10,6 +10,14 @@ Affected files ...
 ... //app/main/core/chatter/java/src/core/userprofile/actions/OutOfOfficeAction.java#1 add"""
         self.assertEqual(changelists.parseFiles(badGusId), [])
 
+    def test_task_id_is_found(self):
+        clWithValidTaskId = """Change 13149790 by s.chaturvedi@gridmanager:vm:10.252.18.250 on 2017/03/09 23:59:14
+    https://gus.my.salesforce.com/a0mB00000030Etw
+Affected files ...
+... //app/main/core/chatter/java/src/core/userprofile/actions/OutOfOfficeAction.java#1 add"""
+        files = changelists.parseFiles(clWithValidTaskId)
+        self.assertEqual(len(files), 1)
+
     def test_file_parsing(self):
         cl = """Change 13149790 by s.chaturvedi@gridmanager:vm:10.252.18.250 on 2017/03/09 23:59:14
     https://gus.my.salesforce.com/a07B00000030Eta

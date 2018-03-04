@@ -9,70 +9,79 @@ We use JSON dictionaries to store features for each java file that we process. E
     2. export GUS_SESSION_ID='<session-id>'
 
 1. Retrieve changelists
-    1. input: parameters for “p4 changes” cmd, like a range of dates for CL retrieval
-    2. output: p4 describe output for each CL
-    3. example:
+    input: parameters for “p4 changes” cmd, like a range of dates for CL retrieval
+    output: p4 describe output for each CL
+    examples:
         p4 changes -s submitted //app/main/core/...@2016/11/18,2017/03/30 | awk '{print $2}' | xargs p4 describe -s > changes-208-main.out
         p4 changes -s submitted "//app/208/patch/...@>2017/03/31" | awk '{print $2}' | xargs p4 describe -s > changes-208-patch.out
 
         p4 changes -s submitted //app/main/core/...@2017/03/31,2017/07/27 | awk '{print $2}' | xargs p4 describe -s > changes-210-main.out
         p4 changes -s submitted "//app/210/patch/...@>2017/07/28" | awk '{print $2}' | xargs p4 describe -s > changes-210-patch.out
 
-2. Gather filenames and other features from the p4 describe command
-    1. input: file containing changelist info
-    2. output: json dict containing filename, gusid, and other p4 info
-    3. example:
-        python retrieve.py changes-208-main.out 2>retrieve.err > retrieve-208-main.out
-        python retrieve.py changes-208-patch.out 2>retrieve-patch.err > retrieve-208-patch.out
+        p4 changes -s submitted //app/main/core/...@2017/07/28,2017/11/16 | awk '{print $2}' | xargs p4 describe -s > changes-212-main.out
+        p4 changes -s submitted "//app/212/patch/...@>2017/11/17" | awk '{print $2}' | xargs p4 describe -s > changes-212-patch.out
 
-        python retrieve.py changes-210-main.out 2>retrieve.err > retrieve-210-main.out
-        python retrieve.py changes-210-patch.out 2>retrieve-patch.err > retrieve-210-patch.out
+2. Gather filenames and other features from the p4 describe command
+    input: file containing changelist info
+    output: json dict containing filename, gusid, and other p4 info
+    examples:
+        python retrieve.py changes-208-main.out 2> >(tee retrieve.err) > retrieve-208-main.out
+        python retrieve.py changes-208-patch.out 2> >(tee retrieve-patch.err) > retrieve-208-patch.out
+
+        python retrieve.py changes-210-main.out 2> >(tee retrieve.err) > retrieve-210-main.out
+        python retrieve.py changes-210-patch.out 2> >(tee retrieve-patch.err) > retrieve-210-patch.out
+
+        python retrieve.py changes-212-main.out 2> >(tee retrieve.err) > retrieve-212-main.out
+        python retrieve.py changes-212-patch.out 2> >(tee retrieve-patch.err) > retrieve-212-patch.out
 
 3. Retrieve GUS info
-    1. input: streamed
-    2. output: gus record type
-    3. create environment variable GUS_SESSION_ID with a valid gus session id
-    4. example: NOTE: use gshuf if that's what you have installed on your mac
-         (g)shuf -n 10000 retrieve-208-main.out | python queryGus.py 2> >(tee queryGus.err) > gus-fixes-208-main.out
-         (g)shuf -n 4000 retrieve-208-patch.out | python queryGus.py 2> >(tee queryGus.err) > gus-fixes-208-patch.out
+    input: streamed
+    output: gus record type
+    setup: create environment variable GUS_SESSION_ID with a valid gus session id (see Step 0.)
+    examples:
+         cat retrieve-208-main.out | python queryGus.py 2> >(tee queryGus.err) > gus-fixes-208-main.out
+         cat retrieve-208-patch.out | python queryGus.py 2> >(tee queryGus.err) > gus-fixes-208-patch.out
 
-         (g)shuf -n 10000 retrieve-210-main.out | python queryGus.py 2> >(tee queryGus.err) > gus-fixes-210-main.out
-         (g)shuf -n 4000 retrieve-210-patch.out | python queryGus.py 2> >(tee queryGus.err) > gus-fixes-210-patch.out
+         cat retrieve-210-main.out | python queryGus.py 2> >(tee queryGus.err) > gus-fixes-210-main.out
+         cat retrieve-210-patch.out | python queryGus.py 2> >(tee queryGus.err) > gus-fixes-210-patch.out
+
+         cat retrieve-212-main.out | python queryGus.py 2> >(tee queryGus.err) > gus-fixes-212-main.out
+         cat retrieve-212-patch.out | python queryGus.py 2> >(tee queryGus.err) > gus-fixes-212-patch.out
 
 4. Find java source. When label=1 find previous java version
-    1. input: streamed
-    2. output: add label= 0 or 1 (based on gus type)
-       output: substitute pre-bug java filename+version when label=1, skip files where label=0 if file already exists with label=1
-    3. example:
-        cat gus-fixes-208-patch.out gus-fixes-208-main.out gus-fixes-210-patch.out gus-fixes-210-main.out | python javasource.py 2>  >(tee javasource.err) > javasource-208-210-all.out
+    input: streamed
+    output: add feature "label" = [0 or 1], where 1 = Bug or Test Failure and 0 = User Story
+            substitute pre-bug java filename+version when label=1, skip files where label=0 if that file version was identified as a pre-bug version
+    example:
+        cat gus-fixes-208-patch.out gus-fixes-208-main.out gus-fixes-210-patch.out gus-fixes-210-main.out gus-fixes-212-patch.out gus-fixes-212-main.out | python javasource.py 2>  >(tee javasource.err) > javasource-208-210-212-all.out
 
 
 5. Retrieve GUS info for buggy CLs - this step will replace the existing gus.worktype with the worktype of the gus record associated with the
-    1. input: streamed
-    2. output: gus record type and label= 0 or 1 (based on gus type) added to dicts
-    3. create environment variable GUS_SESSION_ID with a valid gus session id
-    4. example:
-        cat javasource-208-210-all.out | python queryGus.py 2> >(tee queryGus-bugs.err) > gus-bugs-208-210-all.out
+    input: streamed
+    output: gus record type and label= 0 or 1 (based on gus type) added to dicts
+    setup: create environment variable GUS_SESSION_ID with a valid gus session id
+    example:
+        cat javasource-208-210-212-all.out | python queryGus.py 2> >(tee queryGus-bugs.err) > gus-bugs-208-210-212-all.out
 
 6. Add dates
-    1. example
-        cat gus-bugs-208-210-all.out | python extractDate.py 2> >(tee addDates.err) > extractDates-208-210-all.out
+    example
+        cat gus-bugs-208-210-212-all.out | python extractDate.py 2> >(tee addDates.err) > extractDates-208-210-212-all.out
 
-Sample data artifact: 208-all-addDates.out.gz
+Sample data artifact: extractDates-208-210-212-all.out
 
 7. Analyze java source
-    1. input: streamed
-    2. output: add metrics from java parsing
-    3. example:
-        cat extractDates-208-210-all.out | java -jar ../../../target/java-source-analyzer-1.0-SNAPSHOT.jar 2>parser.err > parser-208-210-all.out
+    input: streamed
+    output: add metrics from java parsing
+    example:
+        cat extractDates-208-210-212-all.out | java -jar ../../../target/java-source-analyzer-1.0-SNAPSHOT.jar 2>parser.err > parser-208-210-212-all.out
 
-Sample data artifact: 208-all-parser.out.gz
+Sample data artifact: parser-208-210-212-all.out
 
 8. Rescore java lexer tokens, convert term frequencies to TF-IDF scores
-    1. input: output of 5
-    2. output: same format as input, with tf-idf scores instead of freqs
-    3. example:
-        java -cp ../../../target/java-source-analyzer-1.0-SNAPSHOT.jar com.salesforce.javaparser.RescoreAll parser-208-210-all.out rescored-208-210-all.out
+    input: output of 5
+    output: same format as input, with tf-idf scores instead of freqs
+    example:
+        java -cp ../../../target/java-source-analyzer-1.0-SNAPSHOT.jar com.salesforce.javaparser.RescoreAll parser-208-210-212-all.out rescored-208-210-212-all.out
 
 
-Sample data artifact: 208-all-rescored.out.gz
+Sample data artifact: rescored-208-210-212-all.out
