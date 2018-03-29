@@ -1,51 +1,67 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
-  <modelVersion>4.0.0</modelVersion>
-  <groupId>com.salesforce.javaparser</groupId>
-  <artifactId>java-source-analyzer</artifactId>
-  <packaging>jar</packaging>
-  <version>1.0-SNAPSHOT</version>
-  <name>java-source-analyzer</name>
-  <url>http://maven.apache.org</url>
-  <dependencies>
-    <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
-      <version>4.11</version>
-      <scope>test</scope>
-    </dependency>
-      <dependency>
-          <groupId>org.antlr</groupId>
-          <artifactId>antlr4</artifactId>
-          <version>4.7</version>
-      </dependency>
-      <!-- https://mvnrepository.com/artifact/com.google.code.gson/gson -->
-      <dependency>
-          <groupId>com.google.code.gson</groupId>
-          <artifactId>gson</artifactId>
-          <version>2.8.1</version>
-      </dependency>
-      <dependency>
-          <groupId>com.beust</groupId>
-          <artifactId>jcommander</artifactId>
-          <version>LATEST</version>
-      </dependency>
-      <dependency>
-          <groupId>org.apache.commons</groupId>
-          <artifactId>commons-lang3</artifactId>
-          <version>3.6</version>
-      </dependency>
-      <dependency>
-          <groupId>org.apache.lucene</groupId>
-          <artifactId>lucene-core</artifactId>
-          <version>7.1.0</version>
-      </dependency>
-      <dependency>
-          <groupId>com.twitter.common</groupId>
-          <artifactId>io</artifactId>
-          <version>0.0.69</version>
-      </dependency>
-  </dependencies>
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>com.salesforce.javaparser</groupId>
+    <artifactId>java-source-analyzer</artifactId>
+    <packaging>jar</packaging>
+    <version>1.0-SNAPSHOT</version>
+    <name>java-source-analyzer</name>
+    <url>http://www.salesforce.com</url>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <scala.version>2.11.12</scala.version>
+        <java.version>1.8</java.version>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.11</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.antlr</groupId>
+            <artifactId>antlr4</artifactId>
+            <version>4.7</version>
+        </dependency>
+        <dependency>
+            <groupId>com.google.code.gson</groupId>
+            <artifactId>gson</artifactId>
+            <version>2.8.1</version>
+        </dependency>
+        <dependency>
+            <groupId>com.beust</groupId>
+            <artifactId>jcommander</artifactId>
+            <version>1.72</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+            <version>3.6</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.lucene</groupId>
+            <artifactId>lucene-core</artifactId>
+            <version>7.1.0</version>
+        </dependency>
+        <dependency>
+            <groupId>com.twitter.common</groupId>
+            <artifactId>io</artifactId>
+            <version>0.0.69</version>
+        </dependency>
+        <dependency>
+            <artifactId>scala-library</artifactId>
+            <groupId>org.scala-lang</groupId>
+            <version>${scala.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.spark</groupId>
+            <artifactId>spark-mllib_2.11</artifactId>
+            <version>2.2.1</version>
+        </dependency>
+    </dependencies>
     <build>
         <plugins>
             <plugin>
@@ -81,18 +97,18 @@
                 </executions>
             </plugin>
             <!--<plugin>-->
-                <!--<groupId>org.apache.maven.plugins</groupId>-->
-                <!--<artifactId>maven-jar-plugin</artifactId>-->
-                <!--<version>2.3.2</version>-->
-                <!--<configuration>-->
-                    <!--<archive>-->
-                        <!--<index>true</index>-->
-                        <!--<manifest>-->
-                            <!--<addClasspath>true</addClasspath>-->
-                            <!--<mainClass>com/salesforce/javaparser/StatsListener</mainClass>-->
-                        <!--</manifest>-->
-                    <!--</archive>-->
-                <!--</configuration>-->
+            <!--<groupId>org.apache.maven.plugins</groupId>-->
+            <!--<artifactId>maven-jar-plugin</artifactId>-->
+            <!--<version>2.3.2</version>-->
+            <!--<configuration>-->
+            <!--<archive>-->
+            <!--<index>true</index>-->
+            <!--<manifest>-->
+            <!--<addClasspath>true</addClasspath>-->
+            <!--<mainClass>com/salesforce/javaparser/StatsListener</mainClass>-->
+            <!--</manifest>-->
+            <!--</archive>-->
+            <!--</configuration>-->
             <!--</plugin>-->
             <plugin>
                 <configuration>
@@ -105,7 +121,7 @@
                 <version>4.7</version>
                 <executions>
                     <execution>
-			<id>antlr</id>
+                        <id>antlr</id>
                         <goals>
                             <goal>antlr4</goal>
                         </goals>
