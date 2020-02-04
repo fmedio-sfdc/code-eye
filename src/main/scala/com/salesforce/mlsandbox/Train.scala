@@ -12,7 +12,7 @@ object Train {
       .getOrCreate()
 
     // Does not work! Frame is too big!
-    val frame = spark.read.json("/Users/fabrice.medio/git/code-eye/data/210-rescored-all-exploded.out")
+    val frame = spark.read.json("/Users/fabrice.medio/git/code-eye/data/210-rescored-all.out")
     frame.show(10)
 
     val lr = new LogisticRegression()

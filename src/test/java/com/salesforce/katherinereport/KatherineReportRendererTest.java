@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -30,11 +31,11 @@ public class KatherineReportRendererTest {
     @Test
     public void testScoreAll() throws IOException {
         Reader reader = new InputStreamReader(new ByteArrayInputStream(INPUT.getBytes()));
-        Map<Release, Double> map = new KatherineReportRenderer().scoreAll(reader);
+        Map<Release, DescriptiveStatistics> map = new KatherineReportRenderer().scoreAll(reader);
         assertEquals(2, map.size());
         List<Release> releases = map.keySet().stream().collect(Collectors.toList());
-        assertEquals(.4d, map.get(releases.get(0)).doubleValue(), 0.00001d);
-        assertEquals(.8d, map.get(releases.get(1)).doubleValue(), 0.00001d);
+        assertEquals(.4d, map.get(releases.get(0)).getMax(), 0.00001d);
+        assertEquals(.8d, map.get(releases.get(1)).getMax(), 0.00001d);
     }
 
     @Before
